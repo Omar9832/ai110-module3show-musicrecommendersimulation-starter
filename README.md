@@ -29,6 +29,29 @@ Some prompts to answer:
 
 You can include a simple diagram or bullet list if helpful.
 
+My recommender is a content-based system that works entirely off the attributes of each song. Every `Song` carries a genre, a mood, and four numeric "vibe" features from the dataset: energy, valence, danceability, and acousticness (plus tempo in beats per minute, which I left out of the score because energy already captures most of what it tells me). The `UserProfile` stores what a listener is looking for — a favorite genre, a favorite mood, and a target energy level between 0 and 1 — which is basically a description of the kind of song they want to hear right now. To score a single song, the `Recommender` adds up points from a few weighted rules: it gives the biggest reward (3 points) when the genre matches, a solid reward (2 points) when the mood matches, and for energy it measures how *close* the song is to the user's target rather than just favoring high or low values, using `2 × (1 − |song_energy − target_energy|)` so a perfect match earns full points and songs drift toward zero as they move away. Every rule that fires also records a short reason, which is what lets the system explain itself. Finally, to choose what to actually recommend, I score every song in the catalog, sort them from highest to lowest, and return the top few — so the recommendations are simply the songs that best matched the listener's taste, in order.
+
+### Finalized Algorithm Recipe
+
+Each song starts at 0 points and earns points from these rules (higher total = better match):
+
+| Rule | Type | Points |
+|------|------|--------|
+| Genre matches the user's favorite genre | exact match | **+3.0** |
+| Mood matches the user's favorite mood | exact match | **+2.0** |
+| Energy is close to the user's target | closeness | **+2.0 × (1 − \|song_energy − target_energy\|)** |
+| Valence is close to the user's target *(optional refiner)* | closeness | **+1.0 × (1 − \|song_valence − target_valence\|)** |
+| Acousticness is close to the user's target *(optional refiner)* | closeness | **+1.0 × (1 − \|song_acousticness − target_acousticness\|)** |
+
+The weights form tiers on purpose: **genre (3) leads**, the **vibe features — mood and energy (2 each) — come second**, and valence/acousticness (1 each) only fine-tune the order. The spacing guarantees a correct-genre song can never be beaten by a wrong-genre song that happens to match the smaller features. After scoring, the list is sorted high-to-low and trimmed to the top *k*.
+
+### Potential Biases
+
+- **Genre over-prioritization.** Because genre carries the most weight, the system can bury a song that perfectly matches the user's mood and energy just because its genre label is different — so it may miss great cross-genre recommendations.
+- **Popularity/catalog bias.** Scoring only compares against the songs in this tiny CSV, so a "best" recommendation is only best *relative to a handful of tracks*, not to music broadly.
+- **Filter-bubble effect.** Content-based scoring keeps suggesting more of what the user already likes and rarely surprises them, which can trap a listener in a narrow slice of their taste.
+- **No understanding of the actual audio, lyrics, or language.** The system trusts the numeric labels; if those labels are wrong or biased, the recommendations inherit that bias.
+
 ---
 
 ## Getting Started
@@ -68,15 +91,47 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Paste a sample of your recommender's output here as a text block so a reader can see what it produces:
+Below is the actual terminal output from `python -m src.main` for the default
+`genre=pop, mood=happy, energy=0.8` profile:
 
 ```
-# e.g.:
-# User profile: genre=indie, mood=chill, energy=low
-# Recommendations:
-#   1. ...
-#   2. ...
-#   3. ...
+Loaded songs: 18
+
+====================================================
+  TOP RECOMMENDATIONS
+  For a listener who likes: genre=pop, mood=happy, energy=0.8
+====================================================
+
+  1. Sunrise City  -  Neon Echo
+     Score: 6.96
+     Because:
+       - genre match (pop) (+3.0)
+       - mood match (happy) (+2.0)
+       - energy close to 0.8 (+1.96)
+
+  2. Gym Hero  -  Max Pulse
+     Score: 4.74
+     Because:
+       - genre match (pop) (+3.0)
+       - energy close to 0.8 (+1.74)
+
+  3. Rooftop Lights  -  Indigo Parade
+     Score: 3.92
+     Because:
+       - mood match (happy) (+2.0)
+       - energy close to 0.8 (+1.92)
+
+  4. Concrete Kings  -  Blok Theory
+     Score: 1.90
+     Because:
+       - energy close to 0.8 (+1.90)
+
+  5. Night Drive Loop  -  Neon Echo
+     Score: 1.90
+     Because:
+       - energy close to 0.8 (+1.90)
+
+====================================================
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->

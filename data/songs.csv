@@ -9,3 +9,11 @@ id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
 8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22
 9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78
 10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35
+11,Concrete Kings,Blok Theory,hip hop,aggressive,0.85,95,0.45,0.90,0.08
+12,Winter Elegy,Camille Rousseau,classical,melancholy,0.30,65,0.25,0.20,0.95
+13,Island Time,Sea Salt Collective,reggae,serene,0.50,92,0.78,0.75,0.35
+14,Iron Verdict,Ashfall,metal,angry,0.97,168,0.30,0.45,0.04
+15,Velvet Hours,Mara Kane,r&b,romantic,0.48,70,0.72,0.68,0.30
+16,Dust and Highways,Cody Vance,country,nostalgic,0.45,100,0.55,0.50,0.68
+17,Neon Sunrise,Pulse Republic,edm,euphoric,0.95,128,0.88,0.92,0.02
+18,Paper Boats,The Willow Road,folk,hopeful,0.42,96,0.70,0.44,0.88
